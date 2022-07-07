@@ -7,31 +7,29 @@ $db = (new React\MySQL\Factory())->createLazyConnection(getenv('DATABASE_DSN'));
 
 $app = new FrameworkX\App();
 
-$app->get('/users', function (Psr\Http\Message\ServerRequestInterface $request) use ($db) {
+$app->post('/auth/register', function (Psr\Http\Message\ServerRequestInterface $request) use ($db) {
     $input = $request->getParsedBody();
     return $db->query(
-        'SELECT title FROM book WHERE isbn = ?',
-        [$isbn]
+        "INSERT INTO `users` (`name`, `email`, `phone`, `password`, `created_at`)
+            VALUES (?, ?, ?, ?, NOW())",
+        [$input['name'], $input['email'], $input['phone'], password_hash($input['password'], PASSWORD_DEFAULT)]
     )->then(function (React\MySQL\QueryResult $result) {
 
-
-        if (count($result->resultRows) === 0) {
-            return React\Http\Message\Response::plaintext(
-                "Book not found\n"
-            )->withStatus(React\Http\Message\Response::STATUS_NOT_FOUND);
+        if ($result->affectedRows) {
+            return React\Http\Message\Response::json([
+                'status' => true,
+                'messages' => 'success'
+            ]);
+        } else {
+            return React\Http\Message\Response::json([
+                'status' => false,
+                'messages' => 'error'
+            ]);
         }
-
-        $data = $result->resultRows[0]['title'];
-        return React\Http\Message\Response::plaintext(
-            $data
-        );
     });
 });
 
 $app->get('/', new Inside\HelloController());
 $app->get('/users/{name}', new Inside\UserController());
-
-$app->post('/auth/register', new Inside\Register());
-
 
 $app->run();
