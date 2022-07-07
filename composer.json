@@ -1,0 +1,12 @@
+{
+    "autoload": {
+        "psr-4": {
+            "Inside\\": "src/"
+        }
+    },
+    "require": {
+        "clue/framework-x": "dev-main",
+        "php-di/php-di": "^6.4",
+        "react/mysql": "^0.5.6"
+    }
+}
